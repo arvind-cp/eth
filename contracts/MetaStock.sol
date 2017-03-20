@@ -23,12 +23,12 @@ contract MetaStock {
 	}
 
 
-	function getStockBal(address addr) returns(uint) {
-		return stockBalances[addr];
+	function getStockBal() returns(uint) {
+		return stockBalances[msg.sender];
 	}
 	
-	function getEthBal(address addr) returns(uint) {
-                return ethBalances[addr];
+	function getEthBal() returns(uint) {
+                return ethBalances[msg.sender];
         }
 
 
@@ -40,8 +40,9 @@ contract MetaStock {
 		return true;
                 }
 
-	function sellMetaStock(address addr,uint noofstocks) returns(bool) 
+	function sellMetaStock(uint noofstocks) returns(bool) 
 	{
+              var addr=msg.sender; 
 	      if(stockBalances[addr] < noofstocks) 
 		{ return false; }
 	         	
