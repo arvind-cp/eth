@@ -1,57 +1,113 @@
 pragma solidity ^0.4.4;
 
-import "./ConvertLib.sol";
+import "./StockTicker.sol";
+// 1 MetaStock = 2000000000000000000 Wei = 2 Eth
 
-// This is just a simple example of a coin-like contract.
-// It is not standards compatible and cannot be expected to talk to other
-// coin/token contracts. If you want to create a standards-compliant
-// token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 contract MetaStock {
-	mapping (address => uint) stockBalances;
-	mapping (address => uint) ethBalances;
-	// 1 MetaStock = 2 eth
-	uint unit_val= 2;
-        address company_address; 
-	event Transfer(address indexed _from, address indexed _to, uint256 _value);
-        event SendEther(address addr,uint val);
-	
-	function MetaStock() {
-		// IPO issue of 10000 stocks
-		stockBalances[tx.origin] = 10000;
-		company_address = tx.origin;
-	}
-
-
-	function getStockBal() returns(uint) {
-		return stockBalances[msg.sender];
-	}
-	
-	function getEthBal() returns(uint) {
-                return ethBalances[msg.sender];
+        mapping (address => uint) stockBalances;
+        uint unit_val;
+        address company_address;
+        
+        //Declare Stock Ticker Object
+        address tickerAddr;
+        StockTicker ST;
+        
+        event buyMetaStockEvent(address addr,uint val);
+        event sellMetaStockEvent(address addr,uint val);
+        event ErrInsufficientEth(address addr,uint val);
+        event ErrInsufficientStock(address addr,uint val);
+        event ErrNotAuthorized(address addr);
+        
+        function MetaStock() {
+                // IPO issue of 10000 stocks
+                stockBalances[msg.sender] = 10000;
+                //Set company address
+                company_address = msg.sender;
+                
+        }
+        // Set the stock market ticker 
+        function setTicker(address addr)  returns(bool) {
+               if(msg.sender!=company_address)
+                {ErrNotAuthorized(addr); return false; }
+                // Connect to the Stock Ticker 
+                 ST = StockTicker(addr);
+                 return true;
         }
 
+        
+        //Get the company stock price. Invokes StockTicker object
+        function getStockPrice() constant returns(uint) {
+            // Get the unit value from stock ticker
+            unit_val=ST.getTickerVal(company_address);
+            return unit_val;
+            }
 
- 	function buyMetaStock() payable public returns(bool) {
-		ethBalances[msg.sender]+=msg.value;
-		stockBalances[company_address]-=msg.value/unit_val;
-		stockBalances[msg.sender]+=msg.value/unit_val;
-		SendEther(msg.sender,msg.value);
-		return true;
+        //Get the no of stocks assigned to sender    
+        function getStockBal() constant returns(uint) {
+                return stockBalances[msg.sender];
+        }
+
+        //Get the value of stocks assigned to sender    
+        function getEthBal() constant returns(uint) {
+                
+                return stockBalances[msg.sender]*unit_val;
+        }
+    
+        
+        // buy Stock
+        function buyMetaStock(uint noofstocks) payable public returns(bool) {
+            // Get the unit value from stock ticker
+            unit_val=ST.getTickerVal(company_address);
+           // noofstocks that can be bought with the ether recieved
+            var noofstocksforeth = msg.value / unit_val;
+            
+         // Check if company is offering enough stocks required    
+            if(stockBalances[company_address] < noofstocks)
+                { ErrInsufficientStock(msg.sender,noofstocks); return false; }
+                
+            // Check if stocks can be bought with the ether recieved
+            if( noofstocks != noofstocksforeth)
+               { ErrInsufficientEth(msg.sender,noofstocks); return false;}
+                
+                stockBalances[company_address]-=noofstocks;
+                stockBalances[msg.sender]+=noofstocks;
+           
+                buyMetaStockEvent(msg.sender,noofstocks);
+                return true;
                 }
 
-	function sellMetaStock(uint noofstocks) returns(bool) 
-	{
-              var addr=msg.sender; 
-	      if(stockBalances[addr] < noofstocks) 
-		{ return false; }
-	         	
-              if(!msg.sender.send(noofstocks*unit_val))
-		{ throw; }
+        function sellMetaStock(uint noofstocks) public returns(bool)
+        {
+              
+              var addr=msg.sender;
+              // Get the unit value from stock ticker
+              unit_val=ST.getTickerVal(company_address);
+            
+              if(stockBalances[addr] < noofstocks)
+                { ErrInsufficientEth(msg.sender,noofstocks); return false;}
 
-	      ethBalances[addr]-=noofstocks*unit_val;
-	      stockBalances[addr]-=noofstocks;
-	      stockBalances[company_address]+=noofstocks;	
-		return true;
+              stockBalances[addr]-=noofstocks;
+              stockBalances[company_address]+=noofstocks;
+
+                 if(!msg.sender.send(noofstocks*unit_val))
+                { throw; }
+                
+                sellMetaStockEvent(addr,noofstocks);
+                return true;
         }
+        
+        function withdrawCompany(uint ethVal) public returns(bool)
+        {
+            var addr=msg.sender;
+            // Check if withdraw from company address only
+            if(addr!=company_address)
+            {ErrNotAuthorized(addr); return false; }   
+                     
+            if(!company_address.send(ethVal))
+                { throw; }
+                return true;
+            
+        }
+        
 }
