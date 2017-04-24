@@ -36,3 +36,5 @@ Meta Stock Contract
         8. function withdrawCompany(uint ethVal) - This function will be invoked by the company to withdraw the funds collected through the IPO to it's own account.
 
 
+Below are the steps for MetaStock to be executed in truffle console . Truffle is a developement environment for solidity contracts. Please refer https://truffle.readthedocs.io/en/latest/ for details
+
