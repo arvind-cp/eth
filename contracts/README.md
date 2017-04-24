@@ -38,3 +38,32 @@ Meta Stock Contract
 
 Below are the steps for MetaStock to be executed in truffle console . Truffle is a developement environment for solidity contracts. Please refer https://truffle.readthedocs.io/en/latest/ for details
 
+
+Below are the steps for MetaStock to be executed in truffle console . 
+Truffle is a developement environment for solidity contracts. Please refer https://truffle.readthedocs.io/en/latest/ for details
+
+1. Deploy MetaStock and StockTicker
+2. Set the variables
+	var meta = MetaStock.at(<address>)
+	var tkr=StockTicker.at(<address>)
+	var accounts = web3.eth.accounts
+	var infy=accounts[0]
+	var contract= meta.address
+	var buyer=accounts[1]
+3. Set the stock ticker to be used by MetaStock and set the stock price. Note that the unit used is Wei not Ether.
+	tkr.setTickerVal(infy, 2000000000000000000)
+	meta.setTicker(tkr.address)
+4. Check Stock and Ether balances
+	meta.getStockBal.call({from:buyer});
+	meta.getStockBal.call({from:infy});
+	web3.eth.getBalance(buyer);
+	web3.eth.getBalance(contract);
+	web3.eth.getBalance(infy);
+5. Buy Stock
+meta.buyMetaStock(10, {from:buyer,value: 20000000000000000000 });
+Execute Step1
+
+6. Sell Stock
+meta.sellMetaStock(5, {from:buyer}); 
+Execute Step1
+
