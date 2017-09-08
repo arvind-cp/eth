@@ -8,8 +8,8 @@ contract Master_Contract {
   mapping (string => string) roles;
   mapping (string => address) userAddresses;
  
-  function addUser(string _userID, string _role) returns (bool) {
-  User_Contract con = new User_Contract();
+  function addUser(string _userID, string _pwd, string _role) returns (bool) {
+  User_Contract con = new User_Contract(_userID, _pwd, msg.sender);
   userAddresses[_userID] = address(con);
   userIDs[con] = _userID;
   roles[_userID] = _role;
@@ -22,20 +22,6 @@ contract Master_Contract {
   
   function getAddress(string userid) returns (address){
   return userAddresses[userid];
-  }
-  
-  function addPII(string userId, string PIIType, string PIIValue) returns (bool) {
-  User_Contract c = User_Contract(userAddresses[userId]);
-  bytes32 PIIHash = sha3(PIIValue);
-  c.addPII(PIIType,PIIHash);
-  return true;
-  }
-  
-  function updatePII(string userId, string PIIType, string PIIValue) returns (bool){
-    User_Contract c = User_Contract(userAddresses[userId]);
-    bytes32 PIIHash = sha3(PIIValue);
-    c.updatePII(PIIType,PIIHash);
-    return true;
   }
   
   function deleteUser(string userId) returns (bool){
