@@ -5,6 +5,8 @@ contract User_Contract {
    struct PII {
    bytes32 PIIHash;
    string ExposePII;
+   address certifierAddr;
+   bytes digCert;
     }
               
    string PIIType;
@@ -13,21 +15,29 @@ contract User_Contract {
    mapping (string => PII) piis_in; //piis that  are certified but yet to be approved by user
   
   //Constructor to initialize
-  function User_Contract(string userID,string password,address userAddress){
+  function User_Contract(string userID,string password, address userAddress){
+  
    piis["UserID"].PIIHash=sha3(userID);
    piis["UserID"].ExposePII="Y";
+   piis["UserID"].certifierAddr=msg.sender;
+
    piis["Password"].PIIHash=sha3(password);
    piis["Password"].ExposePII="Y";
+   piis["Password"].certifierAddr=msg.sender;
+
    piis["UserAddress"].PIIHash= sha3(userAddress);
    piis["UserAddress"].ExposePII="Y";
+   piis["UserAddress"].certifierAddr=msg.sender;
+   
    masterAddress=msg.sender;
   }
   
   // Add or update a new Certified PII
-   function addUpdPII(string piiType, bytes32 piiValue,string exposepii) returns (bool){
-   bytes32 piiHash = sha3(piiValue);
-   piis_in[piiType].PIIHash=piiHash;
+   function addUpdPII(string piiType, bytes piiValue,string exposepii,bytes digcert) returns (bool){
+   piis_in[piiType].PIIHash=sha3(piiValue);
    piis_in[piiType].ExposePII=exposepii;
+   piis_in[piiType].certifierAddr=msg.sender;
+   piis_in[piiType].digCert=digcert;
    return true;
    }
    
@@ -38,22 +48,13 @@ contract User_Contract {
    }
    
    //Verify if the PII value match with the certified PII
-    function verifyPII(string piiType, bytes32 piiValue) returns( bool ){
+    function verifyPII(string piiType, bytes piiValue) returns( bool ){
     if(sha3(piiValue)!=piis[piiType].PIIHash)
       { return false;}
      return true;
   }
   
-  //get the PII Hash Value
-  function getPIIHash(string piitype) returns(bytes32){
-   return (piis[piitype].PIIHash);
-   }
-   
-   //get the PII Flag Value
-   function getPIIFlag(string piitype) returns(string){
-   return (piis[piitype].ExposePII);
-   }
-  
+ 
   // User approve the certified PIIs
   function usrApprovePII(string userID,string password,string piitype) returns (bool)
   {
@@ -63,6 +64,26 @@ contract User_Contract {
   delete(piis_in[piitype]);
   return true;
   }
+   
+    //get the PII Hash Value
+  function getPIIHash(string piitype) returns(bytes32){
+   return (piis[piitype].PIIHash);
+   }
+   
+   //get the PII Flag Value
+   function getPIIFlag(string piitype) returns(string){
+   return (piis[piitype].ExposePII);
+   }
+   
+     //get the PII Certifier Address
+   function getPIICertifier(string piitype) returns(address){
+   return (piis[piitype].certifierAddr);
+   }
+   
+    //get the PII Certifier Address
+   function getPIIdigCert(string piitype) returns(bytes){
+   return (piis[piitype].digCert);
+   }
    
   // Destroy the User Contract and return any funds to the user
   function destructMe(string userID,string password) returns (bool)
