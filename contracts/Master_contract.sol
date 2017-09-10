@@ -17,7 +17,7 @@ contract Master_Contract {
   function addUser(string _userID, string _pwd,string _role) returns (bool) {
   if((sha3(_role)==sha3("Certifier")) && (msg.sender!=adminAddr)) // strings can't be compared directly hence using sha3()
   {return false;}
-  User_Contract con = new User_Contract(_userID, _pwd,_role,msg.sender);
+  User_Contract con = new User_Contract(_userID, _pwd,msg.sender);
   userAddresses[_userID] = address(con);
   userIDs[con] = _userID;
   roles[_userID] = _role;
@@ -25,7 +25,7 @@ contract Master_Contract {
   }
   
   function deleteUser(string userId) returns (bool){
-  if(userAddresses[userId]!=msg.sender || adminAddr!=msg.sender)
+  if(msg.sender!=userAddresses[userId] && msg.sender!=adminAddr) // delete can be invoked by the user or admin only
   {return false;}
   address uadd = userAddresses[userId];
   delete userAddresses[userId];
