@@ -12,22 +12,10 @@ contract User_Contract {
    string PIIType;
    address masterAddress;
    mapping (string => PII) piis;    //piis that are certified and approved by user
-   mapping (string => PII) piis_in; //piis that  are certified but yet to be approved by user
+   mapping (string => PII) piis_in; //piis that  are certified "but yet to be approved by user
   
   //Constructor to initialize
-  function User_Contract(string userID,string password, address userAddress){
-  
-   piis["UserID"].PIIHash=sha3(userID);
-   piis["UserID"].ExposePII="Y";
-   piis["UserID"].certifierAddr=msg.sender;
-
-   piis["Password"].PIIHash=sha3(password);
-   piis["Password"].ExposePII="Y";
-   piis["Password"].certifierAddr=msg.sender;
-
-   piis["UserAddress"].PIIHash= sha3(userAddress);
-   piis["UserAddress"].ExposePII="Y";
-   piis["UserAddress"].certifierAddr=msg.sender;
+  function User_Contract() public {
    
    masterAddress=msg.sender;
   }
@@ -64,25 +52,15 @@ contract User_Contract {
   delete(piis_in[piitype]);
   return true;
   }
-   
-    //get the PII Hash Value
-  function getPIIHash(string piitype) returns(bytes32){
-   return (piis[piitype].PIIHash);
+
+       //get the full Non Approved PII object
+   function getPIIS_IN(string piitype) returns(bytes32,string,address,bytes){
+   return (piis_in[piitype].PIIHash,piis_in[piitype].ExposePII,piis_in[piitype].certifierAddr,piis_in[piitype].digCert);
    }
    
-   //get the PII Flag Value
-   function getPIIFlag(string piitype) returns(string){
-   return (piis[piitype].ExposePII);
-   }
-   
-     //get the PII Certifier Address
-   function getPIICertifier(string piitype) returns(address){
-   return (piis[piitype].certifierAddr);
-   }
-   
-    //get the PII Certifier Address
-   function getPIIdigCert(string piitype) returns(bytes){
-   return (piis[piitype].digCert);
+       //get the full User Approved PII object
+   function getPII(string piitype) returns(bytes32,string,address,bytes){
+   return (piis[piitype].PIIHash,piis[piitype].ExposePII,piis[piitype].certifierAddr,piis[piitype].digCert);
    }
    
   // Destroy the User Contract and return any funds to the user
@@ -94,6 +72,4 @@ contract User_Contract {
   return true;
   }
   
-  
-   
 }
